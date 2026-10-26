@@ -28,3 +28,22 @@ File → Open → תיקיית הפרויקט → המתן ל-Gradle Sync → Bu
 ## בדיקות
 `app/src/test/.../LogicTests.kt` — נרמול, כפילויות, parsing כמויות, מיזוג כמויות, מיון, מוצרים חדשים,
 סדר עצמאי לכל סניף, שמירת מיקומים של מוצרים שלא ברשימה, הצעות, סטטיסטיקות קנייה, ייצוא/ייבוא JSON.
+
+## בית משותף (סנכרון בין טלפונים) — Firebase
+הסנכרון נדלק רק כשיש קובץ `app/google-services.json`. בלעדיו האפליקציה עובדת כרגיל, מקומית.
+1. console.firebase.google.com → Add project (בלי Analytics).
+2. Add app → Android → שם החבילה: `com.shoplist.app` → הורד `google-services.json`.
+3. Build → Firestore Database → Create database (Production mode, אזור קרוב).
+4. Firestore → Rules → הדבק ופרסם:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /households/{code}/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+5. העלה את `google-services.json` לתוך התיקייה `app` בריפו (הריפו חייב להיות Private).
+6. אחרי הבנייה: הגדרות ← "צור בית חדש" בטלפון אחד, ו"הצטרף לבית עם קוד" בשני.

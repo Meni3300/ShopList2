@@ -59,6 +59,9 @@ interface ShopDao {
     @Insert
     suspend fun insertItem(i: ShoppingItem): Long
 
+    @Query("SELECT * FROM shopping_items WHERE id = :id")
+    suspend fun itemById(id: Long): ShoppingItem?
+
     @Query("UPDATE shopping_items SET quantity = :q WHERE id = :id")
     suspend fun setItemQuantity(id: Long, q: Int)
 
@@ -212,6 +215,15 @@ interface ShopDao {
 
     @Query("UPDATE shopping_sessions SET isActive = 0 WHERE branchId = :b")
     suspend fun deactivateSessionsOfBranch(b: Long)
+
+    @Query("UPDATE shopping_sessions SET isActive = 0")
+    suspend fun deactivateAllSessions()
+
+    @Query(
+        "UPDATE shopping_sessions SET isActive = 0 WHERE isActive = 1 AND " +
+            "(branchId NOT IN (SELECT id FROM branches) OR storeId NOT IN (SELECT id FROM stores))"
+    )
+    suspend fun deactivateOrphanSessions()
 
     @Query("SELECT * FROM shopping_sessions")
     suspend fun allSessions(): List<ShoppingSession>

@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 /** One shared ViewModel for the whole app; all state lives in Room, so nothing is lost on process death. */
 class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = ShopListApp.from(app).repo
+    private val sync = ShopListApp.from(app).sync
 
     private fun <T> Flow<T>.state(initial: T): StateFlow<T> =
         stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initial)
@@ -67,6 +68,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun branchInfo(branchId: Long): Flow<BranchInfo?> = repo.observeBranchInfo(branchId)
     fun sessionItems(sessionId: Long): Flow<List<SessionEntry>> = repo.observeSessionItems(sessionId)
     fun historyItems(id: Long): Flow<List<ShoppingHistoryItem>> = repo.observeHistoryItems(id)
+
+    // ----- household sync -----
+    val householdCode: StateFlow<String?> = sync.code
+    val syncAvailable: Boolean get() = sync.available
+
+    fun createHousehold(onResult: (String?) -> Unit) {
+        viewModelScope.launch { onResult(sync.createHousehold()) }
+    }
+    fun joinHousehold(code: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch { onResult(sync.joinHousehold(code)) }
+    }
+    fun leaveHousehold() { viewModelScope.launch { sync.leave() } }
 
     // ----- actions -----
     fun add(text: String) { viewModelScope.launch { repo.addFromText(text) } }

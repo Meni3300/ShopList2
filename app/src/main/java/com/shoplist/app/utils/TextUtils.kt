@@ -77,3 +77,18 @@ object Categories {
         return productEmoji.firstOrNull { n.contains(it.first) }?.second ?: (categoryEmoji[category] ?: "🛒")
     }
 }
+
+/** Stable 64-bit ids derived from names, so every phone computes the same id for the same thing. */
+object KeyIds {
+    fun hash(s: String): Long {
+        var h = -3750763034362895579L // FNV-1a offset basis
+        for (b in s.toByteArray(Charsets.UTF_8)) {
+            h = h xor (b.toLong() and 0xff)
+            h *= 1099511628211L
+        }
+        val r = h and Long.MAX_VALUE
+        return if (r == 0L) 1L else r
+    }
+
+    fun branchId(storeId: Long, normalizedName: String): Long = hash("$storeId|$normalizedName")
+}

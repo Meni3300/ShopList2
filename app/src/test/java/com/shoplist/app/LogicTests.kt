@@ -223,3 +223,57 @@ class BackupTests {
         BackupJson.fromJson("not json at all")
     }
 }
+
+class SyncTests {
+    @Test fun keyIdsAreStableAndPositive() {
+        val a = com.shoplist.app.utils.KeyIds.hash("חלב")
+        assertEquals(a, com.shoplist.app.utils.KeyIds.hash("חלב"))
+        assertTrue(a > 0)
+        assertTrue(a != com.shoplist.app.utils.KeyIds.hash("לחם"))
+    }
+
+    @Test fun legacyIdsAreTranslatedToNameBasedIds() {
+        val h = com.shoplist.app.utils.KeyIds::hash
+        val data = BackupData(
+            products = listOf(Product(7, "חלב", "חלב", "אחר", 1), Product(8, "לחם", "לחם", "אחר", 2)),
+            stores = listOf(Store(3, "ויקטורי", 1)),
+            branches = listOf(Branch(5, 3, "נתיבות", 1)),
+            shoppingItems = listOf(ShoppingItem(1, 7, 2, false, 5)),
+            branchProductOrders = listOf(BranchProductOrder(5, 8, 0, 1), BranchProductOrder(5, 7, 1, 1)),
+            shoppingSessions = emptyList(),
+            shoppingSessionItems = emptyList(),
+            shoppingHistory = listOf(ShoppingHistory(1, 3, 5, 100, 1)),
+            shoppingHistoryItems = listOf(ShoppingHistoryItem(1, 1, 7, "חלב", 2, 100)),
+            themeMode = "system"
+        )
+        val docs = com.shoplist.app.sync.HouseholdDocBuilder.build(data)
+        val milk = h("חלב"); val bread = h("לחם")
+        val storeId = h("ויקטורי")
+        val branchId = com.shoplist.app.utils.KeyIds.branchId(storeId, "נתיבות")
+
+        assertTrue(docs.any { it.collection == "products" && it.id == milk.toString() })
+        val item = docs.first { it.collection == "items" }
+        assertEquals(milk.toString(), item.id)
+        assertEquals(milk, item.fields["productId"])
+        val order = docs.first { it.collection == "orders" }
+        assertEquals(branchId.toString(), order.id)
+        assertEquals(listOf(bread, milk), order.fields["productIds"])
+        val hist = docs.first { it.collection == "history" }
+        assertEquals(branchId, hist.fields["branchId"])
+        assertEquals(storeId, hist.fields["storeId"])
+    }
+
+    @Test fun orphanRowsAreSkipped() {
+        val data = BackupData(
+            products = listOf(Product(7, "חלב", "חלב", "אחר", 1)),
+            stores = emptyList(),
+            branches = listOf(Branch(5, 3, "נתיבות", 1)),
+            shoppingItems = listOf(ShoppingItem(1, 99, 2, false, 5)),
+            branchProductOrders = listOf(BranchProductOrder(5, 7, 0, 1)),
+            shoppingSessions = emptyList(), shoppingSessionItems = emptyList(),
+            shoppingHistory = emptyList(), shoppingHistoryItems = emptyList(), themeMode = "system"
+        )
+        val docs = com.shoplist.app.sync.HouseholdDocBuilder.build(data)
+        assertTrue(docs.none { it.collection == "branches" || it.collection == "items" || it.collection == "orders" })
+    }
+}
