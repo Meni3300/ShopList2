@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#1E2625</color>
+    <color name="widget_text">#EDEDED</color>
+    <color name="widget_sub">#A8B5B3</color>
+    <color name="widget_btn">#26A69A</color>
+</resources>
