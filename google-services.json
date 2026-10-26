@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "979493572067",
+    "project_id": "shoplist-ff575",
+    "storage_bucket": "shoplist-ff575.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:979493572067:android:99ad89ef964d78216b24d6",
+        "android_client_info": {
+          "package_name": "com.shoplist.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASVC-Z8NRbGzBWbXz14yPw1kNLuRglsYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
